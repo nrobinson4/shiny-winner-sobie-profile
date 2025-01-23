@@ -15,6 +15,12 @@ app.get('/', function (req, res) {
   res.sendFile('index.html')
 })
 
+app.get('/ejs', function (req, res) {
+  res.render('words', 
+    {pageTitle: 'my cool ejs page'}
+  );
+})
+
 /** see how to fix 
 app.get('/nodemon', function (req, res) {
   res.sendFile('AHHHHHHHHHHHHHHH')
