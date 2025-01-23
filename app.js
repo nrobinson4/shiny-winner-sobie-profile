@@ -20,12 +20,11 @@ app.get('/ejs', function (req, res) {
     {pageTitle: 'my cool ejs page'}
   );
 })
-
-/** see how to fix 
+ 
 app.get('/nodemon', function (req, res) {
-  res.sendFile('AHHHHHHHHHHHHHHH')
+  res.send('AHHHHHHHHHHHHHHH')
 })
-*/
+
 /**
  * endpoint, middleware(s)
  * " app get to slash "
