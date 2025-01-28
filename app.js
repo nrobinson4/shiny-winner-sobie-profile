@@ -2,14 +2,45 @@
  * Declarations
  */
 const express = require('express')
+require('dotenv').config()
 const app = express()
 const port = process.env.PORT || 3000;
 const bodyParser = require('body-parser')
+const { MongoClient, ServerApiVersion } = require('mongodb');
+const uri = process.env.MONGO_URI;
+
+// console.log(uri)
 
 /** uses index.html in the public directory */
 app.set('view engine', 'ejs')
 app.use(bodyParser.urlencoded({ extended: true }))
 app.use(express.static(__dirname + "/public"))
+
+// Create a MongoClient with a MongoClientOptions object to set the Stable API version
+const client = new MongoClient(uri, {
+  serverApi: {
+    version: ServerApiVersion.v1,
+    strict: true,
+    deprecationErrors: true,
+  }
+});
+
+async function run() {
+  try {
+    // Connect the client to the server	(optional starting in v4.7)
+    await client.connect();
+    // Send a ping to confirm a successful connection
+    await client.db("admin").command({ ping: 1 });
+    console.log("Pinged your deployment. You successfully connected to MongoDB!");
+  } finally {
+    // Ensures that the client will close when you finish/error
+    await client.close();
+  }
+}
+run().catch(console.dir);
+
+
+// BEGIN MIDDLEWARE
 
 /** where the actual web thingy gets pointed from codepen example
  * put /helloRender in index to access that endpoint
@@ -27,19 +58,24 @@ app.get('/ejs', function (req, res) {
 app.get('/saveMyNameGet', (req, res) => {
   console.log('did we hit the get endpoint')
   
-  console.log(req.query)
+  console.log('req.query: ', req.query)
+  let queryName = req.query.myName
   
-  res.redirect('/ejs')
+  // console.log('req.params: ', req.params)
+  
+  res.render('words',
+    {pageTitle: queryName}
+  )
 })
 
 app.post('/saveMyNamePost', (req, res) => {
   console.log('did we hit the post endpoint')
   
   console.log(req.body)
-  
+  let bodyName = req.body.myName
   // res.redirect('/ejs')
   res.render('words', 
-    {pageTitle: req.body.myName}
+    {pageTitle: bodyName}
   );
 })
 
