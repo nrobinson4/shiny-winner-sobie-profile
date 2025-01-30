@@ -37,14 +37,30 @@ async function run() {
     await client.close();
   }
 }
-run().catch(console.dir);
+// run().catch(console.dir);
 
+// Promise architecture
+async function getData() {
+  await client.connect();
+  let shinyCollection = await client.db("shiny-database").collection("shiny-details");
+  let results = await shinyCollection.find({}).toArray();
+    
+  console.log(results);
+  return results;
+}
 
 // BEGIN MIDDLEWARE
 
 /** where the actual web thingy gets pointed from codepen example
  * put /helloRender in index to access that endpoint
  */
+// MUST BE ASYNC for await function
+app.get('/read', async function (req, res) {
+  let getDataResults = await getData(); 
+  res.render('names', 
+  { nameData : getDataResults })
+})
+
 app.get('/', function (req, res) {
   res.sendFile('index.html')
 })
