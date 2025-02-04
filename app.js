@@ -55,6 +55,13 @@ async function getData() {
  * put /helloRender in index to access that endpoint
  */
 // MUST BE ASYNC for await function
+app.post('/insert', async (req, res) => {
+  console.log('in /insert')
+  await client.connect()
+  await client.db("shiny-database").collection("shiny-details").insertOne({ name : req.body.newName })
+  res.redirect('/ejs')
+})
+
 app.get('/read', async function (req, res) {
   let getDataResults = await getData(); 
   res.render('names', 

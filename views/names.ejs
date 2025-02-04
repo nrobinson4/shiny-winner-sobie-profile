@@ -7,6 +7,9 @@
 </head>
 <body>
     NAMES
-    <h1><%= nameData[0].name %> </h1>
+    <!-- Item is each object, name is the specific value -->
+    <h1><% nameData.forEach(function(item) { %>
+        <li><%= item.name %></li>
+      <% }); %></h1>
 </body>
 </html>
