@@ -29,5 +29,11 @@
         <input name="newName">
         <input type="submit" value="new entry">
     </form>
+
+    <!-- CLEAN UP ON NAMES -->
+    <form action="/delete/<%nameData[0]._id%>">
+        <%nameData[0].name%>
+    </form>
+
 </body>
 </html>

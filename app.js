@@ -6,7 +6,7 @@ require('dotenv').config()
 const app = express()
 const port = process.env.PORT || 3000;
 const bodyParser = require('body-parser')
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const uri = process.env.MONGO_URI;
 
 // console.log(uri)
@@ -58,8 +58,38 @@ async function getData() {
 app.post('/insert', async (req, res) => {
   console.log('in /insert')
   await client.connect()
-  await client.db("shiny-database").collection("shiny-details").insertOne({ name : req.body.newName })
-  res.redirect('/ejs')
+  let shinyCollection = await client.db("shiny-database").collection("shiny-details")
+  let results = shinyCollection.insertOne({ name : req.body.newName })
+  res.redirect('/read')
+})
+
+app.post('/delete/:id', async (req, res) => {
+  console.log('in /delete, req.params.id: ', req.params.id)
+  await client.connect()
+  let shinyCollection = await client.db("shiny-database").collection("shiny-details")
+  let deletion = shinyCollection.findOneAndDelete(
+    { 
+      "_id": new ObjectId(req.params.id) 
+    }).then(result => {
+      console.log(result)
+      res.redirect('/read')
+    })
+})
+
+app.post('/update', async (req, res) => {
+  console.log('in /update, req.params.id: ', req.params.id)
+  await client.connect()
+  let shinyCollection = await client.db("shiny-database").collection("shiny-details")
+  let deletion = shinyCollection.findOneAndUpdate(
+    { 
+      // FIX
+      "_id": new ObjectId(req.params.id)}, 
+    { $set : {"fname": req.body.inputUpdateName
+
+    }}).then(result => {
+      console.log(result)
+      res.redirect('/read')
+    })
 })
 
 app.get('/read', async function (req, res) {
@@ -73,6 +103,7 @@ app.get('/', function (req, res) {
 })
 
 app.get('/ejs', function (req, res) {
+  // 'words' is the ejs page that gets displayed when /ejs is called
   res.render('words', 
     {pageTitle: 'my cool ejs page'}
   );

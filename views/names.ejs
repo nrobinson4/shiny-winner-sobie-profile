@@ -7,9 +7,13 @@
 </head>
 <body>
     NAMES
-    <!-- Item is each object, name is the specific value -->
+    <!-- Item is each object, name is the specific value
+      item : data <- in database -->
     <h1><% nameData.forEach(function(item) { %>
         <li><%= item.name %></li>
       <% }); %></h1>
+      
+    <a href="/ejs">Add some more</a>
+      
 </body>
 </html>
