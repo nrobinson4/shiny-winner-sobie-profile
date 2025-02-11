@@ -9,7 +9,6 @@ const bodyParser = require('body-parser')
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const uri = process.env.MONGO_URI;
 
-// console.log(uri)
 
 /** uses index.html in the public directory */
 app.set('view engine', 'ejs')
@@ -25,29 +24,18 @@ const client = new MongoClient(uri, {
   }
 });
 
-async function run() {
-  try {
-    // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
-    // Send a ping to confirm a successful connection
-    await client.db("admin").command({ ping: 1 });
-    console.log("Pinged your deployment. You successfully connected to MongoDB!");
-  } finally {
-    // Ensures that the client will close when you finish/error
-    await client.close();
-  }
-}
-// run().catch(console.dir);
+const mongoCollection = client.db("nolenSobieProfile").collection("nolenSobieBlog")
 
-// Promise architecture
-async function getData() {
-  await client.connect();
-  let shinyCollection = await client.db("shiny-database").collection("shiny-details");
-  let results = await shinyCollection.find({}).toArray();
-    
-  console.log(results);
-  return results;
+
+function initProfileData() {
+  mongoCollection.insertOne({
+    title: "this is the blog post",
+    post: "this is the post"
+  })
 }
+
+initProfileData()
+// Promise architecture
 
 // BEGIN MIDDLEWARE
 
@@ -56,86 +44,47 @@ async function getData() {
  */
 // MUST BE ASYNC for await function
 app.post('/insert', async (req, res) => {
-  console.log('in /insert')
-  await client.connect()
-  let shinyCollection = await client.db("shiny-database").collection("shiny-details")
-  let results = shinyCollection.insertOne({ name : req.body.newName })
-  res.redirect('/read')
-})
-
-app.post('/delete/:id', async (req, res) => {
-  console.log('in /delete, req.params.id: ', req.params.id)
-  await client.connect()
-  let shinyCollection = await client.db("shiny-database").collection("shiny-details")
-  let deletion = shinyCollection.findOneAndDelete(
-    { 
-      "_id": new ObjectId(req.params.id) 
-    }).then(result => {
-      console.log(result)
-      res.redirect('/read')
-    })
-})
-
-app.post('/update', async (req, res) => {
-  console.log('in /update, req.params.id: ', req.params.id)
-  await client.connect()
-  let shinyCollection = await client.db("shiny-database").collection("shiny-details")
-  let deletion = shinyCollection.findOneAndUpdate(
-    { 
-      // FIX
-      "_id": new ObjectId(req.params.id)}, 
-    { $set : {"fname": req.body.inputUpdateName
-
-    }}).then(result => {
-      console.log(result)
-      res.redirect('/read')
-    })
-})
-
-app.get('/read', async function (req, res) {
-  let getDataResults = await getData(); 
-  res.render('names', 
-  { nameData : getDataResults })
-})
-
-app.get('/', function (req, res) {
-  res.sendFile('index.html')
-})
-
-app.get('/ejs', function (req, res) {
-  // 'words' is the ejs page that gets displayed when /ejs is called
-  res.render('words', 
-    {pageTitle: 'my cool ejs page'}
-  );
-})
-
-app.get('/saveMyNameGet', (req, res) => {
-  console.log('did we hit the get endpoint')
   
-  console.log('req.query: ', req.query)
-  let queryName = req.query.myName
-  
-  // console.log('req.params: ', req.params)
-  
-  res.render('words',
-    {pageTitle: queryName}
+  let results = await mongoCollection.insertOne({ 
+    title : req.body.title,
+    post : req.body.post 
+  })
+  res.redirect('/')
+})
+
+app.post('/delete', async function (req, res) {
+  let result = await mongoCollection.findOneAndDelete( 
+  {
+    "_id": new ObjectId(req.body.deleteId)
+  }).then(result => {
+    res.redirect('/');
+  })
+}); 
+
+app.post('/update', async (req,res)=>{
+  let result = await mongoCollection.findOneAndUpdate( 
+  {_id: ObjectId.createFromHexString(req.body.updateId)}, { 
+    $set: 
+      {
+        title : req.body.updateTitle, 
+        post : req.body.updatePost 
+      }
+    }
+  ).then(result => {
+  console.log(result); 
+  res.redirect('/');
+  })
+}); 
+
+app.get('/', async function (req, res) {
+
+  let results = await mongoCollection.find({}).toArray()
+
+  results.length === 0 ? initProfileData() : console.log("results was populated already") 
+  res.render('profile',
+    { profileData : results }
   )
-})
-
-app.post('/saveMyNamePost', (req, res) => {
-  console.log('did we hit the post endpoint')
   
-  console.log(req.body)
-  let bodyName = req.body.myName
-  // res.redirect('/ejs')
-  res.render('words', 
-    {pageTitle: bodyName}
-  );
-})
-
-
-app.get('/nodemon', function (req, res) {
-  res.send('AHHHHHHHHHHHHHHH')
 })
 
 /**
@@ -143,12 +92,6 @@ app.get('/nodemon', function (req, res) {
  * " app get to slash "
  * has link to index.html
  */
-app.get('/helloRender', function (req, res) {
-  res.send('Hello Express from real world<br><a href="/"> back to home</a>')
-})
-
-
-
 // IIFE immediately invoked function expression
 app.listen(port, ()=> console.log(`server is running on ... ${port}`))
 
